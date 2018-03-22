@@ -2,3 +2,10 @@ language: node_js
 node_js: node
 services:
 - mongodb
+deploy:
+  provider: heroku
+  api_key:
+    secure: R7/JokOj8Z0PsEWQUMkHGJeaGCr+lFTLfi3W44OqEAVFtZuYLCM2tz1IWk31CIky4356ptnpqJFXSHGjIOhw4uV54zAtls9iahz3k0r3CiN2bZqeRQMjbLyeAoNl0wBni1NN/U3DbNighg7HAYeMe/FMBLhd8ayvJhse2tNqQ9pSpp0D07UMOg5uIjemNllUeXxqp/bKP9zsExqPzHs9K09ziDpNPFU1NuWLeEg6L6vf5iBOR13dcdjfg4DGlLjUDzWml764MpZDS5HI/Xw2UJcQ+Zy9CFEe0XDgjW10NZFmtAEu5cyb5XnwCMhH3EYII9jdJMJEBwqQvKq5rqkq6wuSB3LVQP+/yEnzuHU2d5B1tmAYk0nq6SFQ37Mmpj/lyy3HLgbkvvz2dcozJcDoCdjY8hSTzoluUC/aT28A0Z5jwTCSWU0t91th0haUNWwW6XIf2/Fzf3ThchFip7l79UpEl9xOhO2SsxvhTGmT4ntSJ0vUgGQB8N/UOlTxpzhZPX0EgDz7HbqIfbGDtAC5IXql5Znv2BJjD2vq7Wvc76BMtzsB1rfVb3d28wwDYUL2NcAe7Ix7LE4ZVd6/YUIQZqFW3mcTfGQHkJcD8xY5isSlrXedYRhwXk9EA8h9e4J0VHY3utv0BI1XP+c+oYENnomY5FJ2OfgUVd1RV7+u5B0=
+  app: sheltered-journey-61642
+  on:
+    repo: play-instinct/rideshare-app
