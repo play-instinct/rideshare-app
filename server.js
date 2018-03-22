@@ -11,7 +11,7 @@ mongoose.Promise = global.Promise;
 // config.js is where we control constants for entire
 // app like PORT and DATABASE_URL
 const { PORT, DATABASE_URL } = require('./config');
-const { Restaurant } = require('./models');
+const { User } = require('./models');
 
 const app = express();
 app.use(bodyParser.json());
@@ -20,6 +20,9 @@ app.use(bodyParser.json());
 app.use('*', function (req, res) {
   res.status(404).json({ message: 'Not Found' });
 });
+
+
+
 
 // closeServer needs access to a server object, but that only
 // gets created when `runServer` runs, so we declare `server` here
