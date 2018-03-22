@@ -1,66 +1,91 @@
-
+const throng = require('throng');
 const bodyParser = require('body-parser');
 const express = require('express');
 const mongoose = require('mongoose');
-
-
-mongoose.Promise = global.Promise;
-
-
-const { PORT, DATABASE_URL } = require('./config/config');
-const { User } = require('./models/user.model');
+const morgan = require('morgan');
+const winston = require('winston');
 
 const app = express();
 
-app.use(bodyParser.json());
+mongoose.Promise = global.Promise;
 
-// catch-all endpoint if client makes request to non-existent endpoint
-app.use('*', function (req, res) {
-    res.status(404).json({ message: 'Not Found' });
+const { PORT, DATABASE_URL, CONCURRENCY: WORKERS, ENV } = require('./config/config');
+
+/* Middlewares */
+// CORS
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+    next();
 });
 
+// Body Parser
+app.use(bodyParser.urlencoded({ extended: false }));
+app.use(bodyParser.json());
+
+// Logging
+morgan.token('processId', () => process.pid);
+if (ENV === 'development') {
+    app.use(morgan(':processId - :method :url :status :response-time ms - :res[content-length]'));
+}
+
+
+/* Routes */
+app.get('/status', (req, res) => {
+    res.json({ processId: process.pid });
+});
+
+/* Starting Scripts */
 let server;
-
-// this function connects to our database, then starts the server
-function runServer(databaseUrl, port = PORT) {
-
-  return new Promise((resolve, reject) => {
-    mongoose.connect(databaseUrl, err => {
-      if (err) {
-        return reject(err);
-      }
-      server = app.listen(port, () => {
-        console.log(`Your app is listening on port ${port}`);
-        resolve();
-      })
-        .on('error', err => {
-          mongoose.disconnect();
-          reject(err);
+function runServer(databaseUrl) {
+    return new Promise((res, rej) => {
+        mongoose.connect(databaseUrl, (err) => {
+            if (err) {
+                return rej(err);
+            }
+            if (ENV === 'development') {
+                winston.info(`Connected to ${databaseUrl}`);
+            } else {
+                winston.info('Connected to database');
+            }
+            server = app.listen(PORT, () => {
+                winston.info(`App is listening on port ${PORT}`);
+                winston.info(`App is running in ${ENV} environment`);
+                winston.info(`Worker process id: ${process.pid}`);
+                winston.info('=========================================');
+                res();
+            })
+            .on('error', (error) => {
+                mongoose.disconnect();
+                rej(error);
+            });
+            return server;
         });
     });
-  });
 }
 
-// this function closes the server, and returns a promise. we'll
-// use it in our integration tests later.
 function closeServer() {
-  return mongoose.disconnect().then(() => {
-    return new Promise((resolve, reject) => {
-      console.log('Closing server');
-      server.close(err => {
-        if (err) {
-          return reject(err);
-        }
-        resolve();
-      });
-    });
-  });
+    return mongoose.disconnect().then(() => (
+        new Promise((res, rej) => {
+            winston.info('Closing server.');
+            server.close((err) => {
+                if (err) {
+                    return rej(err);
+                }
+                return res();
+            });
+        })
+    ));
 }
 
-// if server.js is called directly (aka, with `node server.js`), this block
-// runs. but we also export the runServer command so other code (for instance, test code) can start the server as needed.
 if (require.main === module) {
-  runServer(DATABASE_URL).catch(err => console.error(err));
+    throng({
+        workers: WORKERS,
+        lifetime: Infinity,
+    }, () => {
+        runServer(DATABASE_URL).catch(err => winston.info(err));
+    });
 }
 
 module.exports = { app, runServer, closeServer };
