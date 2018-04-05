@@ -16,8 +16,12 @@ router.route('/users')
     .post(disableWithToken, requiredFields('email', 'username', 'password'), (req, res) => {
         User.create({
             email: req.body.email,
+            name: req.body.name,
             password: req.body.password,
-            username: req.body.username,
+            school: req.body.school,
+            isApproved: req.body.isApproved,
+            phoneNumber: req.body.phoneNumber,
+            homeAddress: req.body.homeAddress
         })
         .then(() => res.status(201).send())
         .catch(report => res.status(400).json(errorsParser.generateErrorResponse(report)));

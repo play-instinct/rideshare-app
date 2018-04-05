@@ -37,7 +37,7 @@ router.route('/rides/:id')
     });
 router.route('/rides/:id/book')
     .get(passport.authenticate('jwt', { session: false }), (req, res) => {
-        Ride.findById(req.params.id)
+        Ride.findOneAndUpdate({ _id: req.params.id }, req.body)
         .then(ride => res.json(ride));
     });
 

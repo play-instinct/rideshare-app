@@ -5,6 +5,8 @@ const mongoose = require('mongoose');
 const morgan = require('morgan');
 const winston = require('winston');
 
+const { router: userRouter } = require('./routers/user.router');
+
 const app = express();
 
 mongoose.Promise = global.Promise;
@@ -36,6 +38,8 @@ app.get('/status', (req, res) => {
     res.json({ processId: process.pid });
 });
 
+
+app.use('/api', userRouter )
 /* Starting Scripts */
 let server;
 function runServer(databaseUrl) {
